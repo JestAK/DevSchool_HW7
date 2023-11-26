@@ -1,8 +1,15 @@
 import express, {Express, Request, Response } from 'express';
+import bodyParser from 'body-parser';
 import { getCustomers, getOrders, patchEmployees, deleteOrder, postProduct } from './db_client.js';
 
 const app = express();
 const port = 5000;
+
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
+
+// parse application/json
+app.use(bodyParser.json())
 
 app.get('/customers/:customerId', async (req: Request, res: Response) => {
     try {
@@ -58,7 +65,8 @@ app.get('/customers/:customerId/orders', async (req: Request, res: Response) => 
 app.patch('/employees/:employeeId', async (req: Request, res: Response) => {
     try {
         const employeeId: number = Number(req.params.employeeId);
-        res.json(await patchEmployees(employeeId));
+        const employee = await patchEmployees(employeeId, req.body);
+        res.status(200).send(employee);
     } catch (error) {
         res.json({
             status: "Bad Request",
@@ -81,7 +89,7 @@ app.delete('/orders/:orderId', async (req: Request, res: Response) => {
 
 app.post('/products', async (req: Request, res: Response) => {
     try {
-        res.json(await postProduct());
+        res.json(await postProduct(req.body));
     } catch (error) {
         res.json({
             status: "Bad Request",

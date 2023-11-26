@@ -13,9 +13,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const body_parser_1 = __importDefault(require("body-parser"));
 const db_client_js_1 = require("./db_client.js");
 const app = (0, express_1.default)();
 const port = 5000;
+// parse application/x-www-form-urlencoded
+app.use(body_parser_1.default.urlencoded({ extended: false }));
+// parse application/json
+app.use(body_parser_1.default.json());
 app.get('/customers/:customerId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const customerId = Number(req.params.customerId);
@@ -67,7 +72,8 @@ app.get('/customers/:customerId/orders', (req, res) => __awaiter(void 0, void 0,
 app.patch('/employees/:employeeId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const employeeId = Number(req.params.employeeId);
-        res.json(yield (0, db_client_js_1.patchEmployees)(employeeId));
+        const employee = yield (0, db_client_js_1.patchEmployees)(employeeId, req.body);
+        res.status(200).send(employee);
     }
     catch (error) {
         res.json({
@@ -90,7 +96,7 @@ app.delete('/orders/:orderId', (req, res) => __awaiter(void 0, void 0, void 0, f
 }));
 app.post('/products', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        res.json(yield (0, db_client_js_1.postProduct)());
+        res.json(yield (0, db_client_js_1.postProduct)(req.body));
     }
     catch (error) {
         res.json({

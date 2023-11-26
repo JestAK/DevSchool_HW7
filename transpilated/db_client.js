@@ -75,19 +75,49 @@ function getOrders(customerId) {
     });
 }
 exports.getOrders = getOrders;
-function patchEmployees(employeeId) {
+function patchEmployees(employeeId, reqBody) {
     return __awaiter(this, void 0, void 0, function* () {
-        const employee;
+        const employee = yield prisma.employees.update({
+            where: {
+                id: employeeId
+            },
+            data: {
+                first_name: reqBody.firstName,
+                last_name: reqBody.lastName,
+                middle_name: reqBody.middleName,
+                position: reqBody.position
+            }
+        });
+        return employee;
     });
 }
 exports.patchEmployees = patchEmployees;
 function deleteOrder(orderId) {
     return __awaiter(this, void 0, void 0, function* () {
+        const productsOnOrder = yield prisma.productsOnOrders.deleteMany({
+            where: {
+                ordersId: orderId
+            }
+        });
+        const order = yield prisma.orders.delete({
+            where: {
+                id: orderId
+            }
+        });
+        return order;
     });
 }
 exports.deleteOrder = deleteOrder;
-function postProduct() {
+function postProduct(reqBody) {
     return __awaiter(this, void 0, void 0, function* () {
+        const product = yield prisma.products.create({
+            data: {
+                name: reqBody.name,
+                category: reqBody.category,
+                amount: reqBody.amount,
+                price: reqBody.price
+            }
+        });
     });
 }
 exports.postProduct = postProduct;

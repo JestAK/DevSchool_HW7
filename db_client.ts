@@ -1,4 +1,6 @@
 import { PrismaClient } from '@prisma/client'
+import { ProductCategory } from '@prisma/client';
+
 const prisma = new PrismaClient()
 
 export async function getCustomers(customerId: number) {
@@ -69,16 +71,52 @@ export async function getOrders(customerId: number) {
 }
 
 
-export async function patchEmployees(employeeId: number) {
-    const employee
+export async function patchEmployees(employeeId: number, reqBody: any) {
+    const employee = await prisma.employees.update({
+        where: {
+            id: employeeId
+        },
+        data: {
+            first_name: reqBody.firstName,
+            last_name: reqBody.lastName,
+            middle_name: reqBody.middleName,
+            position: reqBody.position
+        }
+    });
+
+    return employee;
 }
 
 
 export async function deleteOrder(orderId: number) {
+    const productsOnOrder = await prisma.productsOnOrders.deleteMany({
+        where: {
+            ordersId: orderId
+        }
+    });
 
+    const order = await prisma.orders.delete({
+        where: {
+            id: orderId
+        }
+    });
+
+    return order;
 }
 
-
-export async function postProduct() {
-
+type ProductType = {
+    name: string,
+    category: ProductCategory,
+    amount: number,
+    price: number
+}
+export async function postProduct(reqBody: ProductType) {
+    const product = await prisma.products.create({
+        data: {
+            name: reqBody.name,
+            category: reqBody.category,
+            amount: reqBody.amount,
+            price: reqBody.price
+        }
+    });
 }
