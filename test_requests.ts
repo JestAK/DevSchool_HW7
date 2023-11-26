@@ -38,8 +38,8 @@ async function main() {
         data: {
             first_name: "Bob",
             last_name: "Johnson",
-            email: "test1@gmail.com",
-            birth_date: new Date("2023-11-26"),
+            email: "test2@gmail.com",
+            birth_date: new Date("2023-11-27"),
             Orders: {
                 create: [
                     {
@@ -56,7 +56,7 @@ async function main() {
                             create: {
                                 product: {
                                     create: {
-                                        name: "Lvivske Rizdvyane",
+                                        name: "Something",
                                         category: "Drink",
                                         amount: 1000,
                                         price: 24.99

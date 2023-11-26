@@ -21,49 +21,31 @@ const port = 5000;
 app.use(body_parser_1.default.urlencoded({ extended: false }));
 // parse application/json
 app.use(body_parser_1.default.json());
-app.get('/customers/:customerId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const customerId = Number(req.params.customerId);
-        const customer = yield (0, db_client_js_1.getCustomers)(customerId);
-        if (customer) {
-            res.status(200).json(customer);
-        }
-        else {
-            res.status(400).json({
-                status: "Not exist"
-            });
-        }
-    }
-    catch (error) {
-        res.json({
-            status: "Bad Request",
-            tsError: error
-        });
-    }
-}));
 app.get('/customers/:customerId/orders', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const customerId = Number(req.params.customerId);
-        const customer = yield (0, db_client_js_1.getCustomers)(customerId);
-        const orders = yield (0, db_client_js_1.getOrders)(customerId);
-        if (customer) {
-            if (orders.orders.length) {
-                res.json(orders);
-            }
-            else {
-                res.status(400).json({
-                    status: "Not exist orders"
-                });
-            }
+        if (isNaN(customerId)) {
+            throw new Error("Not a Number");
         }
         else {
-            res.status(400).json({
-                status: "Not exist customer"
-            });
+            try {
+                const orders = yield (0, db_client_js_1.getOrders)(customerId);
+                if (orders.orders.length) {
+                    res.status(200).json(orders);
+                }
+                else {
+                    res.status(404).json({
+                        status: "Customer with such id has no orders"
+                    });
+                }
+            }
+            catch (e) {
+                res.status(404).json(e);
+            }
         }
     }
     catch (error) {
-        res.json({
+        res.status(404).json({
             status: "Bad Request",
             tsError: error
         });
@@ -72,11 +54,21 @@ app.get('/customers/:customerId/orders', (req, res) => __awaiter(void 0, void 0,
 app.patch('/employees/:employeeId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const employeeId = Number(req.params.employeeId);
-        const employee = yield (0, db_client_js_1.patchEmployees)(employeeId, req.body);
-        res.status(200).send(employee);
+        if (isNaN(employeeId)) {
+            throw new Error("Not a Number");
+        }
+        else {
+            try {
+                const employee = yield (0, db_client_js_1.patchEmployees)(employeeId, req.body);
+                res.status(200).send(employee);
+            }
+            catch (e) {
+                res.status(404).json(e);
+            }
+        }
     }
     catch (error) {
-        res.json({
+        res.status(404).json({
             status: "Bad Request",
             tsError: error
         });
@@ -85,10 +77,20 @@ app.patch('/employees/:employeeId', (req, res) => __awaiter(void 0, void 0, void
 app.delete('/orders/:orderId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const orderId = Number(req.params.orderId);
-        res.json(yield (0, db_client_js_1.deleteOrder)(orderId));
+        if (isNaN(orderId)) {
+            throw new Error("Not a Number");
+        }
+        else {
+            try {
+                res.status(200).json(yield (0, db_client_js_1.deleteOrder)(orderId));
+            }
+            catch (e) {
+                res.status(404).json(e);
+            }
+        }
     }
     catch (error) {
-        res.json({
+        res.status(404).json({
             status: "Bad Request",
             tsError: error
         });
@@ -96,12 +98,11 @@ app.delete('/orders/:orderId', (req, res) => __awaiter(void 0, void 0, void 0, f
 }));
 app.post('/products', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        res.json(yield (0, db_client_js_1.postProduct)(req.body));
+        res.status(200).json(yield (0, db_client_js_1.postProduct)(req.body));
     }
     catch (error) {
-        res.json({
-            status: "Bad Request",
-            tsError: error
+        res.status(404).json({
+            status: "Invalid product category"
         });
     }
 }));

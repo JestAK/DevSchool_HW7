@@ -1,6 +1,6 @@
 import express, {Express, Request, Response } from 'express';
 import bodyParser from 'body-parser';
-import { getCustomers, getOrders, patchEmployees, deleteOrder, postProduct } from './db_client.js';
+import {getOrders, patchEmployees, deleteOrder, postProduct } from './db_client.js';
 
 const app = express();
 const port = 5000;
@@ -11,51 +11,31 @@ app.use(bodyParser.urlencoded({ extended: false }))
 // parse application/json
 app.use(bodyParser.json())
 
-app.get('/customers/:customerId', async (req: Request, res: Response) => {
-    try {
-        const customerId: number = Number(req.params.customerId);
-        const customer = await getCustomers(customerId);
-
-        if (customer){
-            res.status(200).json(customer);
-        }
-        else {
-            res.status(400).json({
-                status: "Not exist"
-            });
-        }
-
-    } catch (error) {
-        res.json({
-            status: "Bad Request",
-            tsError: error
-        });
-    }
-});
-
 app.get('/customers/:customerId/orders', async (req: Request, res: Response) => {
     try {
         const customerId: number = Number(req.params.customerId);
-        const customer = await getCustomers(customerId);
-        const orders = await getOrders(customerId);
-
-        if (customer){
-            if (orders.orders.length){
-                res.json(orders);
-            }
-            else {
-                res.status(400).json({
-                    status: "Not exist orders"
-                });
-            }
+        if (isNaN(customerId)){
+            throw new Error("Not a Number");
         }
         else {
-            res.status(400).json({
-                status: "Not exist customer"
-            });
+            try{
+                const orders = await getOrders(customerId);
+
+                if (orders.orders.length){
+                    res.status(200).json(orders);
+                }
+                else {
+                    res.status(404).json({
+                        status: "Customer with such id has no orders"
+                    });
+                }
+            }
+            catch (e) {
+                res.status(404).json(e);
+            }
         }
     } catch (error) {
-        res.json({
+        res.status(404).json({
             status: "Bad Request",
             tsError: error
         });
@@ -65,10 +45,21 @@ app.get('/customers/:customerId/orders', async (req: Request, res: Response) => 
 app.patch('/employees/:employeeId', async (req: Request, res: Response) => {
     try {
         const employeeId: number = Number(req.params.employeeId);
-        const employee = await patchEmployees(employeeId, req.body);
-        res.status(200).send(employee);
+        if (isNaN(employeeId)){
+            throw new Error("Not a Number");
+        }
+        else {
+            try{
+                const employee = await patchEmployees(employeeId, req.body);
+                res.status(200).send(employee);
+            }
+            catch (e) {
+                res.status(404).json(e);
+            }
+        }
+
     } catch (error) {
-        res.json({
+        res.status(404).json({
             status: "Bad Request",
             tsError: error
         });
@@ -78,9 +69,20 @@ app.patch('/employees/:employeeId', async (req: Request, res: Response) => {
 app.delete('/orders/:orderId', async (req: Request, res: Response) => {
     try {
         const orderId: number = Number(req.params.orderId);
-        res.json(await deleteOrder(orderId));
+        if (isNaN(orderId)){
+            throw new Error("Not a Number");
+        }
+        else {
+            try{
+                res.status(200).json(await deleteOrder(orderId));
+            }
+            catch (e) {
+                res.status(404).json(e);
+            }
+
+        }
     } catch (error) {
-        res.json({
+        res.status(404).json({
             status: "Bad Request",
             tsError: error
         });
@@ -89,11 +91,10 @@ app.delete('/orders/:orderId', async (req: Request, res: Response) => {
 
 app.post('/products', async (req: Request, res: Response) => {
     try {
-        res.json(await postProduct(req.body));
+        res.status(200).json(await postProduct(req.body));
     } catch (error) {
-        res.json({
-            status: "Bad Request",
-            tsError: error
+        res.status(404).json({
+            status: "Invalid product category"
         });
     }
 });
